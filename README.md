@@ -1,6 +1,6 @@
 # mongodb puppet module
 
-[![Build Status](https://travis-ci.org/Jack12816/puppetlabs-mongodb.svg?branch=master)](https://travis-ci.org/puppetlabs/puppetlabs-mongodb)
+[![Build Status](https://travis-ci.org/Jack12816/puppetlabs-mongodb.svg?branch=master)](https://travis-ci.org/Jack12816/puppetlabs-mongodb)
 
 #### Table of Contents
 
