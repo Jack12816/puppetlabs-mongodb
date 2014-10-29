@@ -1,7 +1,6 @@
 require 'socket'
 require 'timeout'
 
-
 module Puppet
   module Util
     class MongodbValidator
@@ -34,4 +33,3 @@ module Puppet
     end
   end
 end
-

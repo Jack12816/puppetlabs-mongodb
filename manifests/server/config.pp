@@ -53,24 +53,28 @@ class mongodb::server::config {
     group => $group,
   }
 
-  if ($logpath and $syslog) { fail('You cannot use syslog with logpath')}
+  if ($logpath and $syslog) {
+    fail('You cannot use syslog with logpath')
+  }
 
   if ($ensure == 'present' or $ensure == true) {
 
     # Exists for future compatibility and clarity.
-    if $auth {
+    if ($auth) {
       $noauth = false
     }
     else {
       $noauth = true
     }
 
-    #Pick which config content to use
+    # Pick which config content to use
     if $config_content {
       $cfg_content = $config_content
-    } elsif (versioncmp($mongodb::globals::version, '2.6.0') >= 0) {
+    }
+    elsif (versioncmp($mongodb::globals::version, '2.6.0') >= 0) {
       $cfg_content = template('mongodb/mongodb.conf.2.6.erb')
-    } else {
+    }
+    else {
       $cfg_content = template('mongodb/mongodb.conf.erb')
     }
 
@@ -89,12 +93,15 @@ class mongodb::server::config {
       group   => $group,
       require => File[$config]
     }
+
   } else {
+
     file { $dbpath:
       ensure => absent,
       force  => true,
       backup => false,
     }
+
     file { $config:
       ensure => absent
     }

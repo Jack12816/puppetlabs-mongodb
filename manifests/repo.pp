@@ -2,6 +2,7 @@
 class mongodb::repo (
   $ensure  = $mongodb::params::ensure,
 ) inherits mongodb::params {
+
   case $::osfamily {
     'RedHat', 'Linux': {
       $location = $::architecture ? {

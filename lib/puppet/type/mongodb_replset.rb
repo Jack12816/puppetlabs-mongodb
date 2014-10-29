@@ -1,8 +1,5 @@
-#
-# Author: François Charlier <francois.charlier@enovance.com>
-#
-
 Puppet::Type.newtype(:mongodb_replset) do
+
   @doc = "Manage a MongoDB replicaSet"
 
   ensurable do
@@ -32,4 +29,5 @@ Puppet::Type.newtype(:mongodb_replset) do
   autorequire(:service) do
     'mongodb'
   end
+
 end

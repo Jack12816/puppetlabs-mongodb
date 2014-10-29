@@ -1,5 +1,6 @@
 # PRIVATE CLASS: do not call directly
 class mongodb::server::service {
+
   $ensure           = $mongodb::server::service_ensure
   $service_enable   = $mongodb::server::service_enable
   $service_name     = $mongodb::server::service_name
@@ -22,8 +23,9 @@ class mongodb::server::service {
     hasstatus => true,
     status    => $service_status,
   }
-  if $service_ensure {
-    mongodb_conn_validator { "mongodb":
+
+  if ($service_ensure) {
+    mongodb_conn_validator { 'mongodb':
       server  => $bind_ip,
       port    => $port,
       timeout => '240',

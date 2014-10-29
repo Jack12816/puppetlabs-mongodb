@@ -1,4 +1,5 @@
 Puppet::Type.newtype(:mongodb_user) do
+
   @doc = 'Manage a MongoDB user. This includes management of users password as well as privileges.'
 
   ensurable
@@ -45,12 +46,27 @@ Puppet::Type.newtype(:mongodb_user) do
     end
   end
 
-  newproperty(:password_hash) do
-    desc "The password hash of the user. Use mongodb_password() for creating hash."
+  newproperty(:password) do
+    desc "The password of the user."
     defaultto do
-      fail("Property 'password_hash' must be set. Use mongodb_password() for creating hash.")
+      fail("Property 'password' must be set.")
     end
-    newvalue(/^\w+$/)
+  end
+
+  newparam (:privileged) do
+    desc "If the service is protected via auth we need to work on the user as root."
+    defaultto false
+  end
+
+  newparam(:root_user) do
+    desc "The username of the root user."
+    defaultto false
+    newvalues(/^\w+$/)
+  end
+
+  newparam(:root_password) do
+    desc "The password of the root user."
+    defaultto false
   end
 
   autorequire(:package) do
@@ -60,4 +76,5 @@ Puppet::Type.newtype(:mongodb_user) do
   autorequire(:service) do
     'mongodb'
   end
+
 end

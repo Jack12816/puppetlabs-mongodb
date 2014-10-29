@@ -1,5 +1,6 @@
 # PRIVATE CLASS: do not call directly
 class mongodb::client::install {
+
   $package_ensure = $mongodb::client::ensure
   $package_name   = $mongodb::client::package_name
 
@@ -18,11 +19,11 @@ class mongodb::client::install {
     }
   }
 
-  if $package_name {
+  if ($package_name) {
     package { 'mongodb_client':
-      ensure  => $my_package_ensure,
-      name    => $package_name,
-      tag     => 'mongodb',
+      ensure => $my_package_ensure,
+      name   => $package_name,
+      tag    => 'mongodb',
     }
   }
 }

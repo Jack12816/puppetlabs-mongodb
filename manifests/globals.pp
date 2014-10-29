@@ -15,13 +15,13 @@ class mongodb::globals (
   $group                = undef,
   $bind_ip              = undef,
 
-  $version              = undef,
+  $version              = '2.6.0',
 
   $manage_package_repo  = undef,
 ) {
 
   # Setup of the repo only makes sense globally, so we are doing it here.
-  if($manage_package_repo) {
+  if ($manage_package_repo) {
     class { '::mongodb::repo':
       ensure  => present,
     }

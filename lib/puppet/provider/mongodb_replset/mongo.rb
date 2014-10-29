@@ -1,7 +1,3 @@
-#
-# Author: François Charlier <francois.charlier@enovance.com>
-#
-
 Puppet::Type.type(:mongodb_replset).provide(:mongo) do
 
   desc "Manage hosts members for a replicaset."

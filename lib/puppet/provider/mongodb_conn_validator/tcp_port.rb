@@ -50,4 +50,3 @@ Puppet::Type.type(:mongodb_conn_validator).provide(:tcp_port) do
   end
 
 end
-

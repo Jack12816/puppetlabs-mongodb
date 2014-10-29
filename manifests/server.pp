@@ -14,47 +14,50 @@ class mongodb::server (
   $service_enable   = $mongodb::params::service_enable,
   $service_ensure   = $mongodb::params::service_ensure,
   $service_status   = $mongodb::params::service_status,
+  $restart          = $mongodb::params::restart,
 
   $package_ensure  = $mongodb::params::package_ensure,
   $package_name    = $mongodb::params::server_package_name,
 
-  $logpath         = $mongodb::params::logpath,
-  $bind_ip         = $mongodb::params::bind_ip,
-  $logappend       = true,
-  $fork            = $mongodb::params::fork,
-  $port            = 27017,
-  $journal         = $mongodb::params::journal,
-  $nojournal       = undef,
-  $smallfiles      = undef,
-  $cpu             = undef,
   $auth            = false,
-  $noauth          = undef,
-  $verbose         = undef,
-  $verbositylevel  = undef,
-  $objcheck        = undef,
-  $quota           = undef,
-  $quotafiles      = undef,
+  $bind_ip         = $mongodb::params::bind_ip,
+  $cpu             = undef,
   $diaglog         = undef,
   $directoryperdb  = undef,
-  $profile         = undef,
+  $fork            = $mongodb::params::fork,
+  $journal         = $mongodb::params::journal,
+  $keyfile         = undef,
+  $logappend       = true,
+  $logpath         = $mongodb::params::logpath,
   $maxconns        = undef,
-  $oplog_size      = undef,
+  $mms_interval    = undef,
+  $mms_name        = undef,
+  $mms_token       = undef,
+  $noauth          = undef,
   $nohints         = undef,
   $nohttpinterface = undef,
+  $nojournal       = undef,
+  $noprealloc      = undef,
   $noscripting     = undef,
   $notablescan     = undef,
-  $noprealloc      = undef,
   $nssize          = undef,
-  $mms_token       = undef,
-  $mms_name        = undef,
-  $mms_interval    = undef,
+  $objcheck        = undef,
+  $oplog_size      = undef,
+  $port            = 27017,
+  $profile         = undef,
+  $quotafiles      = undef,
+  $quota           = undef,
   $replset         = undef,
   $rest            = undef,
-  $slowms          = undef,
-  $keyfile         = undef,
+  $root_password   = undef,
+  $root_user       = 'root',
   $set_parameter   = undef,
+  $slowms          = undef,
+  $smallfiles      = undef,
   $syslog          = undef,
-  
+  $verbose         = undef,
+  $verbositylevel  = undef,
+
   $config_content  = undef,
 
   # Deprecated parameters
@@ -64,18 +67,37 @@ class mongodb::server (
   $source          = undef,
 ) inherits mongodb::params {
 
-
-  if ($ensure == 'present' or $ensure == true) {
-    anchor { 'mongodb::server::start': }->
-    class { 'mongodb::server::install': }->
-    class { 'mongodb::server::config': }->
-    class { 'mongodb::server::service': }->
-    anchor { 'mongodb::server::end': }
+  if ($mongodb::server::root_password) {
+    $privileged = true
   } else {
-    anchor { 'mongodb::server::start': }->
-    class { 'mongodb::server::service': }->
-    class { 'mongodb::server::config': }->
-    class { 'mongodb::server::install': }->
-    anchor { 'mongodb::server::end': }
+    $privileged = false
+  }
+
+  Class['mongodb::server::root_password'] -> Mongodb::Db <| name != 'admin' |>
+
+  include '::mongodb::server::install'
+  include '::mongodb::server::config'
+  include '::mongodb::server::service'
+  include '::mongodb::server::root_password'
+
+  anchor { 'mongodb::server::start': }
+  anchor { 'mongodb::server::end': }
+
+  if $restart {
+    Anchor['mongodb::server::start'] ->
+    Class['mongodb::server::install'] ->
+    # Only difference between the blocks is that we use ~> to restart if
+    # restart is set to true.
+    Class['mongodb::server::config'] ~>
+    Class['mongodb::server::service'] ->
+    Class['mongodb::server::root_password'] ->
+    Anchor['mongodb::server::end']
+  } else {
+    Anchor['mongodb::server::start'] ->
+    Class['mongodb::server::install'] ->
+    Class['mongodb::server::config'] ->
+    Class['mongodb::server::service'] ->
+    Class['mongodb::server::root_password'] ->
+    Anchor['mongodb::server::end']
   }
 }

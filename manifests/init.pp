@@ -80,15 +80,15 @@ class mongodb (
   $pidfilepath     = undef
 ) inherits mongodb::params {
 
-  if $enable_10gen {
+  if ($enable_10gen) {
     fail("Parameter enable_10gen is no longer supported. Please use class { 'mongodb::globals': manage_package_repo => true }")
   }
 
-  if $version {
+  if ($version) {
     fail("Parameter version is no longer supported. Please use class { 'mongodb::globals': version => VERSION }")
   }
 
-  if $oplog {
+  if ($oplog) {
     fail('Parameter is no longer supported. On replica set Oplog is enabled by default.')
   }
 
@@ -132,5 +132,4 @@ class mongodb (
     bind_ip         => $bind_ip,
     pidfilepath     => $pidfilepath,
   }
-
 }

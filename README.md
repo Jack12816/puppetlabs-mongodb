@@ -1,8 +1,8 @@
 # mongodb puppet module
 
-[![Build Status](https://travis-ci.org/puppetlabs/puppetlabs-mongodb.png?branch=master)](https://travis-ci.org/puppetlabs/puppetlabs-mongodb)
+[![Build Status](https://travis-ci.org/Jack12816/puppetlabs-mongodb.svg?branch=master)](https://travis-ci.org/puppetlabs/puppetlabs-mongodb)
 
-####Table of Contents
+#### Table of Contents
 
 1. [Overview] (#overview)
 2. [Module Description - What does the module do?](#module-description)
@@ -14,10 +14,16 @@
 
 ## Overview
 
-Installs MongoDB on RHEL/Ubuntu/Debian from OS repo, or alternatively from
+Installs MongoDB on RHEL/Ubuntu/Debian/Archlinux from OS repo, or alternatively from
 10gen repository [installation documentation](http://www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages).
 
-### Deprecation Warning ###
+### Development/Fork Warning
+
+This fork aims to be compatible with Archlinux and the current MongoDB version
+2.6. User management support for 2.4 and lower is broken as the provider
+relies on 2.6 methods.
+
+### Deprecation Warning
 
 This release is a major refactoring of the module which means that the API may
 have changed in backwards incompatible ways. If your project depends on the old API,
@@ -26,7 +32,7 @@ please pin your dependencies to 0.3 version to ensure your environments don't br
 The current module design is undergoing review for potential 1.0 release. We welcome
 any feedback with regard to the APIs and patterns used in this release.
 
-##Module Description
+## Module Description
 
 The MongoDB module manages mongod server installation and configuration of the
 mongod daemon. For the time being it supports only a single MongoDB server
@@ -39,7 +45,7 @@ For the 0.6 release, the MongoDB module now supports basic replicaset features
 
 ## Setup
 
-###What MongoDB affects
+### What MongoDB affects
 
 * MongoDB package.
 * MongoDB configuration files.
@@ -47,7 +53,7 @@ For the 0.6 release, the MongoDB module now supports basic replicaset features
 * MongoDB client.
 * 10gen/mongodb apt/yum repository.
 
-###Beginning with MongoDB
+### Beginning with MongoDB
 
 If you just want a server installation with the default options you can run
 `include '::mongodb::server'`. If you need to customize configuration
@@ -66,7 +72,7 @@ For Red Hat family systems, the client can be installed in a similar fashion:
 puppet class {'::mongodb::client':}
 ```
 
-Note that for Debian/Ubuntu family systems the client is installed with the 
+Note that for Debian/Ubuntu/Archlinux family systems the client is installed with the
 server. Using the client class will by default install the server.
 
 Although most distros come with a prepacked MongoDB server we recommend to
@@ -91,33 +97,47 @@ for future implementation, where you can configure the main settings for
 this module in a global way, to be used by other classes and defined resources.
 On its own it does nothing.
 
+**Note:** All passwords are plaintext.
+
 ### Create MongoDB database
 
-To install MongoDB server, create database "testdb" and user "user1" with password "pass1".
+To install MongoDB server, create a server with configurations.
 
 ```puppet
 class {'::mongodb::server':
   auth => true,
-}
-
-mongodb::db { 'testdb':
-  user          => 'user1',
-  password_hash => 'a15fbfca5e3a758be80ceaf42458bcd8',
+  root_user => 'root',
+  root_password => 'strong_password'
 }
 ```
-Parameter 'password_hash' is hex encoded md5 hash of "user1:mongo:pass1".
-Unsafe plain text password could be used with 'password' parameter instead of 'password_hash'.
+
+This will create a MongoDB configuration with strict authentication enabled.
+A ``admin`` database will be created with the ``root`` user. You can choose
+the name and the password of this root user.
+
+### Create MongoDB database
+
+```puppet
+mongodb::db { 'testdb':
+  user => 'user1',
+  password => 'strong_password',
+}
+```
+
+**Note:** ``password_hash`` is deprecated in favor of ``password``.
 
 ## Reference
 
 ### Classes
 
-####Public classes
+#### Public classes
+
 * `mongodb::server`: Installs and configure MongoDB
 * `mongodb::client`: Installs the MongoDB client shell (for Red Hat family systems)
 * `mongodb::globals`: Configure main settings in a global way
 
-####Private classes
+#### Private classes
+
 * `mongodb::repo`: Manage 10gen/MongoDB software repository
 * `mongodb::repo::apt`: Manage Debian/Ubuntu apt 10gen/MongoDB repository
 * `mongodb::repo::yum`: Manage Redhat/CentOS apt 10gen/MongoDB repository
@@ -126,7 +146,8 @@ Unsafe plain text password could be used with 'password' parameter instead of 'p
 * `mongodb::server::service`: Manages service
 * `mongodb::client::install`: Installs the MongoDB client software package
 
-####Class: mongodb::globals
+#### Class: mongodb::globals
+
 *Note:* most server specific defaults should be overridden in the `mongodb::server`
 class. This class should only be used if you are using a non-standard OS or
 if you are changing elements such as `version` or `manage_package_repo` that
@@ -176,7 +197,7 @@ The version of MonogDB to install/manage. This is a simple way of providing
 a specific version such as '2.2' or '2.4' for example. If not specified,
 the module will use the default for your OS distro.
 
-####Class: mongodb::server
+#### Class: mongodb::server
 
 Most of the parameters manipulate the mongod.conf file.
 
@@ -185,6 +206,15 @@ For more details about configuration parameters consult the
 
 #####`ensure`
 Used to ensure that the package is installed and the service is running, or that the package is absent/purged and the service is stopped. Valid values are true/false/present/absent/purged.
+
+#####`restart`
+Whether the service should be restarted when things change.
+
+#####`root_user`
+The username of the root user.
+
+#####`root_password`
+The MongoDB root password.
 
 #####`config`
 Path of the config file. If not specified, the module will use the default
@@ -495,7 +525,6 @@ Test setup and teardown is handled with rake tasks, so the
 supported way of running tests is with
 
     bundle exec rake spec
-
 
 For system test you will also need to install vagrant > 1.3.x and virtualbox > 4.2.10.
 To run the system tests

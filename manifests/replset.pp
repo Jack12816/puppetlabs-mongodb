@@ -4,7 +4,7 @@ class mongodb::replset(
   $sets = undef
 ) {
 
-  if $sets {
+  if ($sets) {
     create_resources(mongodb_replset, $sets)
   }
 }

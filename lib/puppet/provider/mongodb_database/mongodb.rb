@@ -1,14 +1,22 @@
-Puppet::Type.type(:mongodb_database).provide(:mongodb) do
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'mongodb'))
+Puppet::Type.type(:mongodb_database).provide(:mongodb, :parent => Puppet::Provider::Mongodb) do
+
+  require 'date'
 
   desc "Manages MongoDB database."
-
   defaultfor :kernel => 'Linux'
-
   commands :mongo => 'mongo'
 
   def block_until_mongodb(tries = 10)
     begin
-      mongo('--quiet', '--eval', 'db.getMongo()')
+      run(
+        @resource[:privileged],
+        @resource[:root_user],
+        @resource[:root_password],
+        '--quiet',
+        '--eval',
+        'db.getMongo()'
+      )
     rescue => e
       debug('MongoDB server not ready, retrying')
       sleep 2
@@ -21,16 +29,39 @@ Puppet::Type.type(:mongodb_database).provide(:mongodb) do
   end
 
   def create
-    mongo(@resource[:name], '--quiet', '--eval', "db.dummyData.insert({\"created_by_puppet\": 1})")
+    run(
+      @resource[:privileged],
+      @resource[:root_user],
+      @resource[:root_password],
+      @resource[:name],
+      '--quiet',
+      '--eval',
+      "db.provisioning.insert({createdAt: ISODate('#{DateTime.now.strftime('%FT%T%:z')}')})"
+    )
   end
 
   def destroy
-    mongo(@resource[:name], '--quiet', '--eval', 'db.dropDatabase()')
+    run(
+      @resource[:privileged],
+      @resource[:root_user],
+      @resource[:root_password],
+      @resource[:name],
+      '--quiet',
+      '--eval',
+      'db.dropDatabase()'
+    )
   end
 
   def exists?
     block_until_mongodb(@resource[:tries])
-    mongo("--quiet", "--eval", 'db.getMongo().getDBNames()').chomp.split(",").include?(@resource[:name])
+    run(
+      @resource[:privileged],
+      @resource[:root_user],
+      @resource[:root_password],
+      '--quiet',
+      '--eval',
+      'db.getMongo().getDBNames()'
+    ).chomp.split(",").include?(@resource[:name])
   end
 
 end
