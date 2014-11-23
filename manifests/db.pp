@@ -14,7 +14,7 @@ define mongodb::db (
   $user,
   $password_hash = false,
   $password      = false,
-  $roles         = ['dbAdmin'],
+  $roles         = ['dbOwner'],
   $tries         = 10,
   $privileged    = $mongodb::server::privileged
 ) {
