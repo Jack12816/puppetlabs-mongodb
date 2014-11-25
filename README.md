@@ -126,6 +126,18 @@ mongodb::db { 'testdb':
 
 **Note:** ``password_hash`` is deprecated in favor of ``password``.
 
+### Create MongoDB backups
+
+```puppet
+class { '::mongodb::server::backup':
+    backupuser => 'backup',
+    backuppassword => 'secret-plaintext-passwd',
+    backupdir => '/mnt/backup/mongodb/',
+    file_per_database => true,
+    time => ['23', '5']
+}
+```
+
 ## Reference
 
 ### Classes

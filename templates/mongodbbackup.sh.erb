@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+# MongoDB Backup Script
+#  Dumps mongodb databases to a file for another backup tool to pick up.
+#
+##### START CONFIG ###################################################
+
+USER='<%= @backupuser %>'
+PASS='<%= @backuppassword %>'
+DIR='<%= @backupdir %>'
+ROTATE=<%= [ Integer(@backuprotate) - 1, 0 ].max %>
+
+PREFIX=mongodb_backup_
+TMP_DIR=`mktemp -d --suffix=.mongodump`
+
+##### STOP CONFIG ####################################################
+PATH=<%= @execpath %>
+
+set -o pipefail
+
+cleanup()
+{
+    find "${DIR}/" -maxdepth 1 -type f -name "${PREFIX}*.dump*" -mtime +${ROTATE} -print0 | xargs -0 -r rm -f
+}
+
+cd "$TMP_DIR"
+
+<% if @delete_before_dump -%>
+cleanup
+
+<% end -%>
+<% if @backupdatabases.empty? -%>
+<% if @file_per_database -%>
+echo "show dbs" | mongo -u "${USER}" -p "${PASS}" --authenticationDatabase admin --quiet --norc | cut -d' ' -f1 | while read dbname
+do
+    mongodump -u"${USER}" -p"${PASS}" --authenticationDatabase admin --dumpDbUsersAndRoles --db "${dbname}" --out .
+    <% if @backupcompress %>
+    tar cfvj "${DIR}/${PREFIX}${dbname}_`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
+    <% else %>
+    cp -a * "${DIR}/${PREFIX}${dbname}_`date +%Y%m%d-%H%M%S`.dump"
+    <% end  %>
+    rm -rf *
+done
+<% else -%>
+mongodump -u"${USER}" -p"${PASS}" --authenticationDatabase admin
+<% if @backupcompress %>
+tar cfvj "${DIR}/${PREFIX}`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
+<% else %>
+cp -a . "${DIR}/${PREFIX}`date +%Y%m%d-%H%M%S`.dump"
+<% end  %>
+rm -rf *
+<% end -%>
+<% else -%>
+<% @backupdatabases.each do |db| -%>
+mongodump -u"${USER}" -p"${PASS}" --authenticationDatabase admin --dumpDbUsersAndRoles --db "<%= db %>" --out .
+<% if @backupcompress %>
+tar cfvj "${DIR}/${PREFIX}<%= db %>_`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
+<% else %>
+cp -a * "${DIR}/${PREFIX}<%= db %>_`date +%Y%m%d-%H%M%S`.dump"
+<% end  %>
+rm -rf *
+<% end -%>
+<% end -%>
+
+<% unless @delete_before_dump -%>
+if [ $? -eq 0 ] ; then
+    cleanup
+fi
+<% end -%>
+
+cd /tmp && rm -rf "$TMP_DIR"
+
+<% if @postscript -%>
+  <%- [@postscript].flatten.compact.each do |script|%>
+<%= script %>
+  <%- end -%>
+<% end -%>
