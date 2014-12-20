@@ -41,7 +41,7 @@ do
             --authenticationDatabase admin --dumpDbUsersAndRoles --db "${dbname}" --out .
     fi
     <% if @backupcompress %>
-    tar cfvj "${DIR}/${PREFIX}${dbname}_`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
+    tar cfj "${DIR}/${PREFIX}${dbname}_`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
     <% else %>
     cp -a * "${DIR}/${PREFIX}${dbname}_`date +%Y%m%d-%H%M%S`.dump"
     <% end  %>
@@ -50,7 +50,7 @@ done
 <% else -%>
 mongodump -u"${USER}" -p"${PASS}" --quiet --authenticationDatabase admin
 <% if @backupcompress %>
-tar cfvj "${DIR}/${PREFIX}`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
+tar cfj "${DIR}/${PREFIX}`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
 <% else %>
 cp -a . "${DIR}/${PREFIX}`date +%Y%m%d-%H%M%S`.dump"
 <% end  %>
@@ -66,7 +66,7 @@ mongodump -u"${USER}" -p"${PASS}" --quiet \
     --authenticationDatabase admin --dumpDbUsersAndRoles --db "<%= db %>" --out .
 <% end %>
 <% if @backupcompress %>
-tar cfvj "${DIR}/${PREFIX}<%= db %>_`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
+tar cfj "${DIR}/${PREFIX}<%= db %>_`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
 <% else %>
 cp -a * "${DIR}/${PREFIX}<%= db %>_`date +%Y%m%d-%H%M%S`.dump"
 <% end  %>
