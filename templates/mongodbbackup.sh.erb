@@ -33,7 +33,13 @@ cleanup
 <% if @file_per_database -%>
 echo "show dbs" | mongo -u "${USER}" -p "${PASS}" --authenticationDatabase admin --quiet --norc | cut -d' ' -f1 | while read dbname
 do
-    mongodump -u"${USER}" -p"${PASS}" --authenticationDatabase admin --dumpDbUsersAndRoles --db "${dbname}" --out .
+    if [ 'admin' = "${dbname}" ]; then
+        mongodump -u"${USER}" -p"${PASS}" --quiet \
+            --authenticationDatabase admin --db "${dbname}" --out .
+    else
+        mongodump -u"${USER}" -p"${PASS}" --quiet \
+            --authenticationDatabase admin --dumpDbUsersAndRoles --db "${dbname}" --out .
+    fi
     <% if @backupcompress %>
     tar cfvj "${DIR}/${PREFIX}${dbname}_`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
     <% else %>
@@ -42,7 +48,7 @@ do
     rm -rf *
 done
 <% else -%>
-mongodump -u"${USER}" -p"${PASS}" --authenticationDatabase admin
+mongodump -u"${USER}" -p"${PASS}" --quiet --authenticationDatabase admin
 <% if @backupcompress %>
 tar cfvj "${DIR}/${PREFIX}`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
 <% else %>
@@ -52,7 +58,13 @@ rm -rf *
 <% end -%>
 <% else -%>
 <% @backupdatabases.each do |db| -%>
-mongodump -u"${USER}" -p"${PASS}" --authenticationDatabase admin --dumpDbUsersAndRoles --db "<%= db %>" --out .
+<% if 'admin' == db %>
+mongodump -u"${USER}" -p"${PASS}" --quiet \
+    --authenticationDatabase admin --db "<%= db %>" --out .
+<% else %>
+mongodump -u"${USER}" -p"${PASS}" --quiet \
+    --authenticationDatabase admin --dumpDbUsersAndRoles --db "<%= db %>" --out .
+<% end %>
 <% if @backupcompress %>
 tar cfvj "${DIR}/${PREFIX}<%= db %>_`date +%Y%m%d-%H%M%S`.dump.tar.bz2" .
 <% else %>
